@@ -1,3 +1,4 @@
+from revents import __version__ as revents_version
 from setuptools import setup, find_namespace_packages
 
 def long_description():
@@ -10,6 +11,7 @@ def requirements():
 
 setup(
     name="revents",
+    version=revents_version,
     description="Reddit events for asyncpraw",
     long_description=long_description(),
     long_description_content_type="text/markdown",

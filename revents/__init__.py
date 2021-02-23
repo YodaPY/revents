@@ -3,6 +3,8 @@ import asyncio
 import asyncpraw
 import functools
 
+__version__ = "0.0.1"
+
 EFunc = typing.Callable[[asyncpraw.models.Submission], typing.Any]
 
 class EventClient(asyncpraw.Reddit):
