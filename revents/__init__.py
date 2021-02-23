@@ -18,7 +18,7 @@ class EventClient(asyncpraw.Reddit):
         """
         A decorator to subscribe to events
 
-        Args:
+        Keyword Args:
             subreddits: The subbreddits to listen for submissions
         """
         def decorator(func):
