@@ -18,7 +18,7 @@ reddit_settings = {
 client = EventClient(**reddit_settings)
 
 @client.listen(subreddits={"Python"})
-async def on_submission_from_testingground4bots(submission):
+async def on_submission(submission):
     print(submission.title)
 
 client.run()
