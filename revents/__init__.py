@@ -3,7 +3,7 @@ import asyncio
 import asyncpraw
 import functools
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 
 EFunc = typing.Callable[[asyncpraw.models.Submission], typing.Any]
 
@@ -74,7 +74,6 @@ class EventClient(asyncpraw.Reddit):
         Args:
             func: The function to call on a submission create event
             subreddits: The subreddits to listen for submissions
-            sleep: The amount of time to sleep before fetching submissions of the subreddits
         
         Returns:
             None
@@ -85,11 +84,18 @@ class EventClient(asyncpraw.Reddit):
             for subreddit in subreddits
         }
 
-    def run(self) -> None:
+    def run(self, *, run_forever=True) -> None:
         """
         Run the client and start listening to submissions
+
+        Keyword Args:
+            run_forever: Whether the event loop should run forever. This could be useful for discord bots.
+
+        Returns:
+            None
         """
         
         self.event_loop.create_task(self._get_submissions())
-        self.event_loop.run_forever()
+        if not self.event_loop.is_running() and run_forever:
+            self.event_loop.run_forever()
     
