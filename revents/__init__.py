@@ -3,7 +3,7 @@ import asyncio
 import asyncpraw
 import functools
 
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 
 EFunc = typing.Callable[[asyncpraw.models.Submission], typing.Any]
 

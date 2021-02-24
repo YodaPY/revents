@@ -1,3 +1,6 @@
+![PyPI](https://img.shields.io/pypi/v/revents)
+![License](https://img.shields.io/github/license/YodaPY/revents)
+
 Revents makes listening to events easier than ever, be it for discord bots or just simple testing.
 
 **Currently revents only supports submission create events**
