@@ -3,7 +3,7 @@ Revents makes listening to events easier than ever, be it for discord bots or ju
 **Currently revents only supports submission create events**
 
 Install it with:
-`pip install git+https://github.com/YodaPY/revents.git`
+`pip install revents`
 
 # Example Usage:
 ```py

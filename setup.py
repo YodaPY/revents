@@ -17,7 +17,7 @@ setup(
     long_description_content_type="text/markdown",
     author="YodaPY",
     url="https://github.com/YodaPY/revents",
-    packages=find_namespace_packages(include=["revents" + "*"]),
+    packages=find_namespace_packages(include=["revents" + "*"], exclude=["revents/test.py"]),
     install_requires=requirements(),
     include_package_data=True,
     python_requires=">=3.7.0,<3.10",
