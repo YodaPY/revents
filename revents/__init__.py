@@ -3,7 +3,7 @@ import asyncio
 import asyncpraw
 from collections import defaultdict
 
-__version__ = "0.0.5"
+__version__ = "0.0.6"
 
 EFunc = typing.Callable[[asyncpraw.models.Submission], typing.Any]
 
@@ -35,19 +35,23 @@ class EventClient(asyncpraw.Reddit):
         """
 
         while True:
-            for function in self.subscriptions.keys():
-                for subreddit, submission in self.subscriptions[function].items():
-                    latest_submission = await self._fetch_data(subreddit)
-                    if not submission:
+            try:
+                for function in self.subscriptions.keys():
+                    for subreddit, submission in self.subscriptions[function].items():
+                        latest_submission = await self._fetch_data(subreddit)
+                        if not submission:
+                            self.subscriptions[function][subreddit] = latest_submission
+                            continue
+                        
+                        if latest_submission.id != submission.id:
+                            await function(latest_submission)
+
                         self.subscriptions[function][subreddit] = latest_submission
-                        continue
-                    
-                    if latest_submission.id != submission.id:
-                        await function(latest_submission)
 
-                    self.subscriptions[function][subreddit] = latest_submission
+                        await asyncio.sleep(1)
 
-                    await asyncio.sleep(1)
+            except RuntimeError:
+                continue
             
     async def _fetch_data(self, subreddit: str) -> set:
         """
@@ -78,6 +82,24 @@ class EventClient(asyncpraw.Reddit):
 
         for subreddit in subreddits:
             self.subscriptions[func].setdefault(subreddit, set())
+
+    def unsubscribe(self, func, subreddits: typing.List[str]) -> None:
+        """
+        Unsubscribe from receiving submissions from the given subreddits
+
+        Args:
+            func: The function to remove the subscriptions from
+            subreddits: The subreddits to unsubscribe from
+        
+        Returns:
+            None
+
+        Raises:
+            KeyError if you didn't subscribe to the subreddit
+        """
+
+        for subreddit in subreddits:
+            del self.subscriptions[func][subreddit]
 
     def run(self, *, run_forever=True) -> None:
         """
