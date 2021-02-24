@@ -1,9 +1,9 @@
 import typing
 import asyncio
 import asyncpraw
-import functools
+from collections import defaultdict
 
-__version__ = "0.0.4"
+__version__ = "0.0.5"
 
 EFunc = typing.Callable[[asyncpraw.models.Submission], typing.Any]
 
@@ -11,18 +11,19 @@ class EventClient(asyncpraw.Reddit):
     __slots__ = ("subscriptions", "event_loop")
 
     def __init__(self, *args, **kwargs):
-        self.subscriptions: typing.Mapping[EFunc, typing.Mapping[str, set]] = {}
+        self.subscriptions: typing.Mapping[EFunc, typing.Mapping[str, set]] = defaultdict(lambda: {})
         self.event_loop = asyncio.get_event_loop()
 
         super().__init__(*args, **kwargs)
 
-    def listen(self, *, subreddits: set):
+    def listen(self, *, subreddits: typing.List[str]):
         """
         A decorator to subscribe to events
 
         Keyword Args:
             subreddits: The subbreddits to listen for submissions
         """
+
         def decorator(func):
             self.subscribe(func, subreddits)
 
@@ -35,19 +36,18 @@ class EventClient(asyncpraw.Reddit):
 
         while True:
             for function in self.subscriptions.keys():
-                for subreddit, submissions in self.subscriptions[function].items():
-                    latest_submissions = await self._fetch_data(subreddit)
-                    if not submissions:
-                        self.subscriptions[function][subreddit] = latest_submissions
+                for subreddit, submission in self.subscriptions[function].items():
+                    latest_submission = await self._fetch_data(subreddit)
+                    if not submission:
+                        self.subscriptions[function][subreddit] = latest_submission
                         continue
+                    
+                    if latest_submission.id != submission.id:
+                        await function(latest_submission)
 
-                    new_submissions = latest_submissions - submissions
-                    if new_submissions:
-                        await function(list(new_submissions)[0])
+                    self.subscriptions[function][subreddit] = latest_submission
 
-                    self.subscriptions[function][subreddit] = latest_submissions
-
-                    await asyncio.sleep(10)
+                    await asyncio.sleep(1)
             
     async def _fetch_data(self, subreddit: str) -> set:
         """
@@ -61,13 +61,10 @@ class EventClient(asyncpraw.Reddit):
         """
 
         subreddit = await self.subreddit(subreddit)
-        submissions = set()
-        async for submission in subreddit.new(limit=10):
-            submissions.add(submission)
-        
-        return submissions
+        async for submission in subreddit.new(limit=1):
+            return submission
 
-    def subscribe(self, func: EFunc, subreddits: set) -> None:
+    def subscribe(self, func: EFunc, subreddits: typing.List[str]) -> None:
         """
         Subscribe to a submission create event in the given subreddit
 
@@ -79,10 +76,8 @@ class EventClient(asyncpraw.Reddit):
             None
         """
 
-        self.subscriptions[func] = {
-            subreddit: set()
-            for subreddit in subreddits
-        }
+        for subreddit in subreddits:
+            self.subscriptions[func].setdefault(subreddit, set())
 
     def run(self, *, run_forever=True) -> None:
         """

@@ -20,7 +20,7 @@ reddit_settings = {
 
 client = EventClient(**reddit_settings)
 
-@client.listen(subreddits={"Python"})
+@client.listen(subreddits=["Python"])
 async def on_submission(submission):
     print(submission.title)
 
